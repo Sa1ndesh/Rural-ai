@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuralX AI | Analyzing X-Ray</title>
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/scanning.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+        }
+    </script>
+</head>
+<body>
+
+<!-- ══════════ SCANNING VIEW ══════════ -->
+<div id="scanningView">
+    <div class="bg-grid"></div>
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <!-- Patient Bar -->
+    <div class="patient-bar">
+        <div class="pb-item">
+            <svg class="pb-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="pb-val" id="sName">—</span>
+        </div>
+        <div class="pb-sep"></div>
+        <div class="pb-item">
+            <svg class="pb-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span class="pb-label">Age</span><span class="pb-val" id="sAge">—</span>
+        </div>
+        <div class="pb-sep"></div>
+        <div class="pb-item">
+            <svg class="pb-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span class="pb-label">SpO₂</span><span class="pb-val" id="sSpo2">—</span>
+        </div>
+        <div class="pb-sep"></div>
+        <div class="pb-item">
+            <svg class="pb-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+            <span class="pb-label">ID</span><span class="pb-val pid-mono" id="sPid">—</span>
+        </div>
+    </div>
+
+    <div class="scanner-layout">
+        <!-- X-Ray Scanner -->
+        <div class="scanner-col">
+            <div class="scanner-frame">
+                <div class="scanner-glow"></div>
+                <div class="scanner-box">
+                    <img id="scanImg" class="scanner-img" style="display:none;" alt="X-Ray">
+                    <div class="scanner-ph" id="scanPH">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(99,102,241,0.25)" stroke-width="0.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div class="scan-beam"></div>
+                    <div class="det-dot d1" id="dot1"></div>
+                    <div class="det-dot d2" id="dot2"></div>
+                    <div class="det-dot d3" id="dot3"></div>
+                    <div class="s-corner tl"></div><div class="s-corner tr"></div>
+                    <div class="s-corner bl"></div><div class="s-corner br"></div>
+                </div>
+            </div>
+            <div class="scan-meta">
+                <div class="scan-label" id="statusLabel">Initializing AI System…</div>
+                <div class="scan-pbar"><div class="scan-pfill" id="pFill"></div></div>
+                <div class="scan-pct" id="pPct">0%</div>
+            </div>
+        </div>
+
+        <!-- Steps -->
+        <div class="steps-col">
+            <div class="steps-heading">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                AI Processing Pipeline
+            </div>
+
+            <div class="step" id="st_qc">
+                <div class="step-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg></div>
+                <div class="step-body"><h4>Image Quality Assessment</h4><p>Laplacian variance check · Blur score analysis · Resolution validation</p></div>
+                <div class="step-trail" id="sts_qc"></div>
+            </div>
+            <div class="step" id="st_enh">
+                <div class="step-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                <div class="step-body"><h4>Enhancement Pipeline</h4><p>CLAHE equalisation · Contrast normalisation · Lung field segmentation</p></div>
+                <div class="step-trail" id="sts_enh"></div>
+            </div>
+            <div class="step" id="st_ens">
+                <div class="step-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22"/><path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93"/><circle cx="12" cy="6" r="1" fill="currentColor"/></svg></div>
+                <div class="step-body"><h4>Triple-Ensemble Inference</h4><p>DenseNet-121 × 3 models · Averaged logits · 224×224 feature extraction</p></div>
+                <div class="step-trail" id="sts_ens"></div>
+            </div>
+            <div class="step" id="st_mc">
+                <div class="step-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+                <div class="step-body"><h4>MC Dropout Uncertainty</h4><p>10 stochastic forward passes · Epistemic bounds · Confidence calibration</p></div>
+                <div class="step-trail" id="sts_mc"></div>
+            </div>
+            <div class="step" id="st_gc">
+                <div class="step-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+                <div class="step-body"><h4>Grad-CAM Heatmap</h4><p>Class activation mapping · Explainability overlay · Region highlighting</p></div>
+                <div class="step-trail" id="sts_gc"></div>
+            </div>
+            <div class="step" id="st_rp">
+                <div class="step-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+                <div class="step-body"><h4>Clinical Report Generation</h4><p>Multilingual triage · Risk stratification · Radiological summary</p></div>
+                <div class="step-trail" id="sts_rp"></div>
+            </div>
+            <div class="step" id="st_sv">
+                <div class="step-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                <div class="step-body"><h4>Cloud Sync & Delta</h4><p>Patient record update · Health progress comparison · History archive</p></div>
+                <div class="step-trail" id="sts_sv"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ RESULTS VIEW ══════════ -->
+<div id="resultsView">
+
+    <!-- Top bar -->
+    <div class="res-topbar">
+        <a href="/app" class="res-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            New Scan
+        </a>
+        <div class="res-title-block">
+            <div class="res-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Diagnostic Report
+            </div>
+            <div class="res-subtitle" id="resTime"></div>
+        </div>
+        <div class="res-patient-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <strong id="rpName">—</strong>
+            <span class="pid-mono" id="rpPid">—</span>
+        </div>
+    </div>
+
+    <!-- Triage Hero -->
+    <div class="res-section">
+        <div class="triage-hero" id="triageHero">
+            <div class="triage-emblem" id="triageEmb"></div>
+            <div class="triage-text">
+                <div class="t-level" id="tLevel">—</div>
+                <div class="t-dx" id="tDx"></div>
+                <div class="t-ref" id="tRef"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="res-section">
+        <div class="metrics-strip">
+            <div class="m-card">
+                <div class="m-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                <div class="m-label">Confidence</div>
+                <div class="m-value" id="mConf">—</div>
+            </div>
+            <div class="m-card">
+                <div class="m-icon unc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                <div class="m-label">Uncertainty (MC)</div>
+                <div class="m-value" id="mUnc">—</div>
+            </div>
+            <div class="m-card">
+                <div class="m-icon qa"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div class="m-label">Quality Assurance</div>
+                <div class="m-value small" id="mQa">—</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved + Delta -->
+    <div class="res-section">
+        <div class="saved-pill" id="savedPill" style="display:none;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Saved to patient record
+        </div>
+        <div id="deltaWrap"></div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="res-grid">
+        <!-- Left Column -->
+        <div class="res-left">
+            <!-- Probabilities -->
+            <div class="g-card">
+                <div class="card-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Disease Probability
+                </div>
+                <div class="prob-row">
+                    <div class="prob-head"><span class="prob-name">Tuberculosis</span><span class="prob-pct" id="rTbPct">0%</span></div>
+                    <div class="prob-track"><div class="prob-fill tb" id="rTbBar"></div></div>
+                </div>
+                <div class="prob-row" style="margin-top:1rem;">
+                    <div class="prob-head"><span class="prob-name">Pneumonia</span><span class="prob-pct" id="rPnPct">0%</span></div>
+                    <div class="prob-track"><div class="prob-fill pn" id="rPnBar"></div></div>
+                </div>
+            </div>
+
+            <!-- Findings -->
+            <div class="g-card">
+                <div class="card-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Radiological Findings
+                </div>
+                <div id="findingsList"></div>
+            </div>
+
+            <!-- Report -->
+            <div class="g-card">
+                <div class="card-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Clinical Report
+                </div>
+                <div id="reportList"></div>
+                <div class="res-actions">
+                    <button class="res-btn primary" onclick="window.print()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        Print Report
+                    </button>
+                    <a href="/app" class="res-btn ghost">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        New Analysis
+                    </a>
+            </div>
+
+            <!-- Google AI Studio (Gemini) Multimodal Consultation -->
+            <div class="g-card gemini-card" id="geminiCard">
+                <div class="gemini-header">
+                    <div class="gemini-badge-label">
+                        <span class="gemini-sparkle">✨</span>
+                        <span>Google AI Studio &bull; Gemini Multimodal Consultation</span>
+                    </div>
+                    <button type="button" class="gemini-key-btn" id="geminiKeyBtn" title="Configure Google AI Studio API Key">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                        <span id="geminiKeyStatusText">API Key</span>
+                    </button>
+                </div>
+
+                <!-- API Key Config Drawer -->
+                <div class="gemini-key-drawer" id="geminiKeyDrawer" style="display:none;">
+                    <p class="gemini-drawer-desc">
+                        Connect your free Google AI Studio key to unlock real-time Gemini multimodal X-Ray second opinions & clinical dialog.
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get free API key &rarr;</a>
+                    </p>
+                    <div class="gemini-key-input-row">
+                        <input type="password" id="geminiApiKeyInput" class="gemini-key-input" placeholder="Paste AIzaSy... key from Google AI Studio">
+                        <button type="button" class="gemini-action-btn" id="saveGeminiKeyBtn">Save</button>
+                    </div>
+                </div>
+
+                <!-- Consultation Trigger & Body -->
+                <div id="geminiConsultWrap">
+                    <div id="geminiEmptyState" class="gemini-empty-state">
+                        <p>Generate an in-depth radiological narrative second opinion with differential diagnosis & rural triage protocols powered by Google's Gemini models.</p>
+                        <button type="button" class="res-btn gemini-btn" id="btnConsultGemini">
+                            <span>✨ Consult Google AI Studio Radiologist</span>
+                        </button>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="geminiLoadingState" class="gemini-loading-state" style="display:none;">
+                        <div class="gemini-spinner"></div>
+                        <div class="gemini-loading-text">
+                            <strong>Google AI Studio analyzing radiograph...</strong>
+                            <span id="geminiLoadingSub">Correlating image features with patient vitals & DenseNet biomarkers</span>
+                        </div>
+                    </div>
+
+                    <!-- Result Container -->
+                    <div id="geminiResultArea" class="gemini-result-area" style="display:none;">
+                        <div class="gemini-meta-bar">
+                            <span class="gemini-model-tag" id="geminiModelTag">Gemini 1.5 Flash</span>
+                            <span class="gemini-timestamp" id="geminiTimestamp"></span>
+                            <button type="button" class="gemini-refresh-btn" id="geminiRefreshBtn" title="Regenerate consultation">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                Re-analyze
+                            </button>
+                        </div>
+                        <div class="gemini-markdown-body" id="geminiMarkdownBody"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive Chat Box with Radiologist -->
+                <div class="gemini-chat-section" id="geminiChatSection" style="display:none;">
+                    <div class="gemini-chat-header">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span>Ask Gemini Clinical Assistant</span>
+                    </div>
+                    <div class="gemini-chat-messages" id="geminiChatMessages">
+                        <div class="g-msg ai">
+                            <div class="g-msg-bubble">Hello doctor. I've reviewed the scan and telemetry. You can ask me follow-up questions about antibiotic selection, isolation advice, or plain-language explanation for the family.</div>
+                        </div>
+                    </div>
+                    <form class="gemini-chat-form" id="geminiChatForm">
+                        <input type="text" id="geminiChatInput" placeholder="Ask about this patient's treatment, red flags, or dosage..." autocomplete="off">
+                        <button type="submit" id="geminiSendBtn" title="Send Question">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Right Column -->
+        <div class="res-right">
+            <!-- Heatmap -->
+            <div class="g-card accent-glow">
+                <div class="card-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Grad-CAM Explainability
+                </div>
+                <div class="hm-tabs">
+                    <button class="hm-tab active" data-v="hm">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        Heatmap
+                    </button>
+                    <button class="hm-tab" data-v="og">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        Original
+                    </button>
+                </div>
+                <div class="hm-container">
+                    <img id="hmImg" alt="Heatmap" style="position:relative;z-index:2;">
+                    <img id="ogImg" alt="Original" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;opacity:0;z-index:1;">
+                </div>
+                <div class="hm-opacity-row">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/></svg>
+                    <input type="range" id="hmOp" min="0" max="1" step="0.05" value="1">
+                </div>
+            </div>
+
+            <!-- Anatomical Visualizer -->
+            <div class="g-card accent-glow" style="margin-top:1.5rem;">
+                <div class="card-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    Anatomical Localization
+                </div>
+                <div class="lung-visualizer">
+                    <svg id="lungSvg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <filter id="glow-danger" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="8" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                            <filter id="glow-warn" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="6" result="blur" />
+                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                            </filter>
+                        </defs>
+                        <!-- Trachea -->
+                        <path class="lung-trachea" d="M90 10 Q100 0 110 10 L110 50 Q100 60 90 50 Z" />
+                        <!-- Right Lung (Patient's Right, Viewer's Left) -->
+                        <g id="rightLung">
+                            <path class="lung-lobe rl-upper" id="lobe-ru" d="M90 60 Q40 40 30 100 Q40 120 85 110 Z" />
+                            <path class="lung-lobe rl-middle" id="lobe-rm" d="M30 100 Q20 150 40 180 Q60 180 80 140 Z" />
+                            <path class="lung-lobe rl-lower" id="lobe-rl" d="M85 110 Q80 140 40 180 Q90 220 95 160 Z" />
+                        </g>
+                        <!-- Left Lung (Patient's Left, Viewer's Right) -->
+                        <g id="leftLung">
+                            <path class="lung-lobe ll-upper" id="lobe-lu" d="M110 60 Q160 40 170 110 Q140 130 115 110 Z" />
+                            <path class="lung-lobe ll-lower" id="lobe-ll" d="M170 110 Q180 160 160 180 Q130 200 115 160 Q130 140 115 110 Z" />
+                        </g>
+                    </svg>
+                    <div class="lung-legend">
+                        <div class="ll-item"><span class="ll-dot safe"></span> Clear</div>
+                        <div class="ll-item"><span class="ll-dot warn"></span> Infiltrate</div>
+                        <div class="ll-item"><span class="ll-dot danger"></span> Consolidation</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/static/supabase-client.js"></script>
+<script src="/static/scanning.js"></script>
+</body>
+</html>

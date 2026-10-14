@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuralX AI | Multimodal Chest X-Ray Diagnostics</title>
+    <meta name="description" content="Offline-capable Multimodal AI for early detection and triage of TB, Pneumonia, and chest diseases in rural healthcare.">
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(reg => {
+                    console.log('SW registered:', reg.scope);
+                }).catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</head>
+<body>
+    
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <div class="app-container">
+
+        <!-- ─── Header ─── -->
+        <header class="top-nav">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#fff" stroke-width="2"/>
+                        <path d="M12 8V16M8 12H16" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="logo-name">RuralX <span class="logo-ai">AI</span></span>
+                    <span class="logo-tagline">Medical Grade Diagnostics</span>
+                </div>
+            </div>
+
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-target="diagnosisView">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    New Scan
+                </button>
+                <button class="nav-tab" data-target="historyView">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Patient History
+                </button>
+                <button class="nav-tab" data-target="epiDashboardView">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Epi-Dashboard
+                </button>
+                <button class="nav-tab" data-target="aboutView">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    System Info
+                </button>
+            </nav>
+
+            <div class="nav-controls">
+                <button type="button" id="mainGeminiKeyBtn" title="Google AI Studio Settings" onclick="promptGeminiKey()" style="margin-right:0.5rem;display:inline-flex;align-items:center;gap:5px;padding:0.4rem 0.85rem;border-radius:999px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.35);color:#C7D2FE;font-size:0.75rem;font-weight:600;cursor:pointer;transition:all 0.2s;">
+                    <span style="font-size:0.85rem;">✨</span>
+                    <span>Google AI Studio</span>
+                </button>
+                <!-- User Profile Bar (populated by JS) -->
+                <div id="userProfileBar" class="user-profile-bar" style="display:none;">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <div class="user-info">
+                        <span class="user-name" id="userName">Loading…</span>
+                        <span class="user-pid" id="userPid">RX-…</span>
+                    </div>
+                    <div class="user-sep"></div>
+                    <button class="btn-icon-only" onclick="window.RuralXAuth.signOut()" title="Sign Out">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ─── DIAGNOSIS TAB ─── -->
+        <main id="diagnosisView" class="tab-view active fade-in-up">
+            
+            <div class="diag-header">
+                <h1>Diagnostic Intake</h1>
+                <p>Upload a chest radiograph and provide clinical context for AI analysis.</p>
+            </div>
+
+            <form id="diagnosisForm" class="diag-form" autocomplete="off">
+                <!-- Left Column: Upload -->
+                <div class="diag-col upload-col">
+                    <div class="glass-panel upload-panel">
+                        <div class="panel-badge">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Step 1: Imaging
+                        </div>
+                        
+                        <!-- Drop Zone -->
+                        <div class="drop-zone" id="dropZone">
+                            <input type="file" id="xrayImage" name="image" accept="image/*" required>
+                            
+                            <div class="drop-placeholder" id="dropPlaceholder">
+                                <div class="drop-icon">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </div>
+                                <span class="drop-title">Upload Radiograph</span>
+                                <span class="drop-sub">Drag & drop or click to browse</span>
+                                <span class="drop-format">JPG, PNG, DICOM (converted)</span>
+                            </div>
+
+                            <img id="imagePreview" class="hidden" alt="X-Ray Preview">
+                            <div class="drop-overlay hidden" id="dropOverlay">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <span>Change Image</span>
+                            </div>
+                        </div>
+
+                        <!-- Pre-Analysis Risk Strip -->
+                        <div id="preRiskStrip" class="pre-risk-strip" style="display: none;">
+                            <div class="risk-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            </div>
+                            <div class="risk-content">
+                                <strong>Clinical Red Flags Detected</strong>
+                                <span id="preRiskText"></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary huge" id="analyzeBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                            <span id="btnText">Initiate AI Analysis</span>
+                            <div class="loader hidden" id="btnLoader"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Patient Data -->
+                <div class="diag-col form-col">
+                    <div class="glass-panel form-panel">
+                        <div class="panel-badge">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            Step 2: Clinical Context
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="fs-title">Patient Demographics</h3>
+                            <div class="fg-row">
+                                <div class="fg">
+                                    <label for="patientName">Full Name</label>
+                                    <input type="text" id="patientName" name="patient_name" placeholder="John Doe">
+                                </div>
+                                <div class="fg">
+                                    <label for="patientDob">Date of Birth</label>
+                                    <input type="date" id="patientDob" name="patient_dob">
+                                </div>
+                            </div>
+                            <div class="fg-row">
+                                <div class="fg">
+                                    <label for="age">Age <span class="fg-hint">(Auto-calculated)</span></label>
+                                    <input type="number" id="age" name="age" placeholder="-" readonly class="readonly">
+                                </div>
+                                <div class="fg">
+                                    <label for="patientGender">Gender</label>
+                                    <select id="patientGender" name="gender">
+                                        <option value="">Select...</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="fs-title">Vital Signs & History</h3>
+                            <div class="fg-row">
+                                <div class="fg required">
+                                    <label for="spo2">SpO₂ Level (%)</label>
+                                    <input type="number" id="spo2" name="spo2" placeholder="98" min="30" max="100" required>
+                                </div>
+                                <div class="fg">
+                                    <label for="temperature">Temperature (°F)</label>
+                                    <input type="number" id="temperature" name="temperature" placeholder="98.6" step="0.1">
+                                </div>
+                            </div>
+                            <div class="fg-row">
+                                <div class="fg">
+                                    <label for="fever_days">Fever Duration (Days)</label>
+                                    <input type="number" id="fever_days" name="fever_days" placeholder="0" min="0">
+                                </div>
+                                <div class="fg">
+                                    <label for="cough_days">Cough Duration (Days)</label>
+                                    <input type="number" id="cough_days" name="cough_days" placeholder="0" min="0">
+                                </div>
+                            </div>
+                            
+                            <div class="fg-row radio-row">
+                                <div class="fg">
+                                    <label>Haemoptysis <span class="fg-hint">(Coughing Blood)</span></label>
+                                    <div class="radio-group">
+                                        <label class="radio-pill"><input type="radio" name="haemoptysis" value="yes"><span>Yes</span></label>
+                                        <label class="radio-pill"><input type="radio" name="haemoptysis" value="no" checked><span>No</span></label>
+                                    </div>
+                                </div>
+                                <div class="fg">
+                                    <label>BCG Vaccination</label>
+                                    <div class="radio-group">
+                                        <label class="radio-pill"><input type="radio" name="bcg" value="yes"><span>Yes</span></label>
+                                        <label class="radio-pill"><input type="radio" name="bcg" value="no"><span>No</span></label>
+                                        <label class="radio-pill"><input type="radio" name="bcg" value="unknown" checked><span>Unk</span></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="fg">
+                                <label for="symptoms">Additional Symptoms</label>
+                                <input type="text" id="symptoms" name="symptoms" placeholder="Chest pain, fatigue, night sweats...">
+                            </div>
+                        </div>
+
+                        <div class="form-section no-border">
+                            <h3 class="fs-title">Report Localization</h3>
+                            <div class="lang-grid">
+                                <label class="lang-card"><input type="radio" name="language" value="en" checked><span>🇬🇧 English</span></label>
+                                <label class="lang-card"><input type="radio" name="language" value="hi"><span>🇮🇳 Hindi</span></label>
+                                <label class="lang-card"><input type="radio" name="language" value="kn"><span>🇮🇳 Kannada</span></label>
+                                <label class="lang-card"><input type="radio" name="language" value="mr"><span>🇮🇳 Marathi</span></label>
+                                <label class="lang-card"><input type="radio" name="language" value="ta"><span>🇮🇳 Tamil</span></label>
+                                <label class="lang-card"><input type="radio" name="language" value="te"><span>🇮🇳 Telugu</span></label>
+                                <label class="lang-card"><input type="radio" name="language" value="bn"><span>🇮🇳 Bengali</span></label>
+                                <label class="lang-card"><input type="radio" name="language" value="or"><span>🇮🇳 Odia</span></label>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+        </main>
+
+        <!-- ─── HISTORY TAB ─── -->
+        <main id="historyView" class="tab-view" style="display: none;">
+            <div class="history-header">
+                <h2>Longitudinal Patient Records</h2>
+                <p>Cloud-synced diagnostic scans with automated health delta tracking.</p>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="metrics-loading">
+                    <div class="loader" style="width:32px;height:32px;border-width:3px;margin:0 auto 1rem;"></div>
+                    Retrieving patient records...
+                </div>
+            </div>
+        </main>
+
+        <!-- ─── EPI DASHBOARD TAB ─── -->
+        <main id="epiDashboardView" class="tab-view" style="display: none;">
+            <div class="history-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h2>Live Epidemiological Map</h2>
+                    <p>National real-time tracking of diagnostic hotspots.</p>
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239,68,68,0.2); padding:0.5rem 1rem; border-radius:8px; color:#FCA5A5; font-size:0.85rem;">
+                        <strong id="tbCount">0</strong> Active TB Clusters
+                    </div>
+                    <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245,158,11,0.2); padding:0.5rem 1rem; border-radius:8px; color:#FCD34D; font-size:0.85rem;">
+                        <strong id="pneuCount">0</strong> Pneumonia Zones
+                    </div>
+                </div>
+            </div>
+            <div class="glass-panel" style="padding:4px; height:600px; margin-top:1rem;">
+                <div id="indiaMap" style="width:100%; height:100%; border-radius:12px; z-index:1;"></div>
+            </div>
+        </main>
+
+        <!-- ─── ABOUT TAB ─── -->
+        <main id="aboutView" class="tab-view" style="display: none;">
+            <div class="glass-panel about-panel">
+                <div class="about-hero">
+                    <div class="logo-icon huge">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#fff" stroke-width="2"/><path d="M12 8V16M8 12H16" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+                    </div>
+                    <h2>RuralX AI Diagnostic System</h2>
+                    <p>Advanced Multimodal Inference Pipeline v2</p>
+                </div>
+
+                <div class="about-grid">
+                    <div class="about-card">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <h3>Triple-Ensemble Architecture</h3>
+                        <p>Powered by three optimized DenseNet-121 backbones running concurrently. Predictions are aggregated using softmax averaging for superior accuracy and robustness against noise.</p>
+                    </div>
+                    <div class="about-card">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <h3>Uncertainty Calibration</h3>
+                        <p>Implements Monte Carlo (MC) Dropout across 10 stochastic forward passes. This quantifies epistemic uncertainty, ensuring the model flags unreliable predictions rather than guessing blindly.</p>
+                    </div>
+                    <div class="about-card">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <h3>XAI Heatmaps</h3>
+                        <p>Utilizes Gradient-weighted Class Activation Mapping (Grad-CAM) to generate high-resolution overlay heatmaps, providing visual explainability of radiological findings to clinicians.</p>
+                    </div>
+                    <div class="about-card">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <h3>Longitudinal Cloud Sync</h3>
+                        <p>Fully integrated with Supabase. Automatically tracks patient scan history over time and computes precise mathematical health deltas between current and previous probability distributions.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div><!-- end app-container -->
+
+    <!-- Supabase SDK (must load before supabase-client.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="/static/supabase-client.js?v=2"></script>
+    <script src="/static/main.js?v=2"></script>
+</body>
+</html>

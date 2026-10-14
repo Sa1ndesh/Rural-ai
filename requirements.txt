@@ -1,0 +1,11 @@
+# RuralX-AI dependencies (Python 3.10–3.11 recommended)
+Flask==3.0.3
+Werkzeug==3.0.4
+Pillow==10.3.0
+python-dotenv==1.0.1
+numpy==1.26.4
+opencv-python==4.10.0.84
+torch==2.3.1
+torchvision==0.18.1
+transformers==4.44.2
+gunicorn==22.0.0

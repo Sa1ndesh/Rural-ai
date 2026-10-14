@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuralX AI | Next-Gen Chest X-Ray Diagnostics for Rural Healthcare</title>
+    <meta name="description" content="AI-powered multimodal chest X-ray diagnostics for rural healthcare. Detect TB, Pneumonia and more with 94%+ accuracy. Built for offline environments.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/landing.css">
+</head>
+<body>
+
+<!-- ── Animated Background ── -->
+<canvas id="particleCanvas"></canvas>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- ── Navigation ── -->
+<nav class="navbar" id="navbar">
+    <div class="nav-inner">
+        <div class="nav-logo">
+            <div class="logo-icon-nav">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#fff" stroke-width="2"/>
+                    <path d="M12 8V16M8 12H16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span class="nav-brand">RuralX <span class="brand-ai">AI</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="#stats" class="nav-link">Performance</a>
+        </div>
+        <div class="nav-actions">
+            <a href="/auth" class="btn-nav-signin" id="navSignIn">Sign In</a>
+            <a href="/auth?mode=signup" class="btn-nav-cta" id="navGetStarted">Get Started</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+    <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Powered by Triple DenseNet-121 Ensemble
+    </div>
+    <h1 class="hero-title">
+        <span class="hero-line-1">Diagnose Chest Diseases</span>
+        <span class="hero-line-2">in <span class="gradient-text">Seconds</span></span>
+        <span class="hero-line-3">Not Days</span>
+    </h1>
+    <p class="hero-sub">
+        AI-powered chest X-ray analysis for rural clinics. Detect TB, Pneumonia and cardiac conditions with
+        hospital-grade accuracy — even without internet.
+    </p>
+    <div class="hero-actions">
+        <a href="/auth?mode=signup" class="btn-primary-hero" id="heroGetStarted">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Start Diagnosing Free
+        </a>
+        <a href="#features" class="btn-ghost-hero">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            See How It Works
+        </a>
+    </div>
+    <div class="hero-trust">
+        <div class="trust-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            94.2% Accuracy
+        </div>
+        <div class="trust-sep">·</div>
+        <div class="trust-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Offline Ready
+        </div>
+        <div class="trust-sep">·</div>
+        <div class="trust-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            8 Languages
+        </div>
+        <div class="trust-sep">·</div>
+        <div class="trust-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            CPU Optimized
+        </div>
+    </div>
+
+    <!-- Floating UI Mock -->
+    <div class="hero-visual">
+        <div class="mock-card mock-main">
+            <div class="mock-header">
+                <div class="mock-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <span class="mock-title">Diagnostic Results</span>
+            </div>
+            <div class="mock-xray-area">
+                <div class="mock-xray-bg">
+                    <div class="mock-xray-glow"></div>
+                    <div class="mock-scan-line"></div>
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" opacity="0.3">
+                        <ellipse cx="40" cy="40" rx="32" ry="36" stroke="rgba(99,102,241,0.6)" stroke-width="1.5" fill="none"/>
+                        <path d="M20 40 Q30 30 40 40 Q50 50 60 40" stroke="rgba(6,182,212,0.5)" stroke-width="1.5" fill="none"/>
+                        <path d="M25 48 Q35 36 40 40 Q50 44 55 36" stroke="rgba(6,182,212,0.4)" stroke-width="1.2" fill="none"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="mock-result">
+                <div class="mock-result-row">
+                    <span class="mock-label">Diagnosis</span>
+                    <span class="mock-value critical">Pneumonia Detected</span>
+                </div>
+                <div class="mock-result-row">
+                    <span class="mock-label">Confidence</span>
+                    <span class="mock-value">94.2%</span>
+                </div>
+                <div class="mock-bar-row">
+                    <span class="mock-label">TB Probability</span>
+                    <div class="mock-bar-track"><div class="mock-bar-fill danger" style="width: 18%"></div></div>
+                    <span class="mock-pct">18%</span>
+                </div>
+                <div class="mock-bar-row">
+                    <span class="mock-label">Pneumonia</span>
+                    <div class="mock-bar-track"><div class="mock-bar-fill warning" style="width: 76%"></div></div>
+                    <span class="mock-pct">76%</span>
+                </div>
+            </div>
+        </div>
+        <div class="mock-card mock-pill mock-risk">
+            <span class="risk-badge high">⚠ HIGH RISK</span>
+            <span class="mock-sub">Referral: within 4h</span>
+        </div>
+        <div class="mock-card mock-pill mock-lang">
+            <span>🌐</span>
+            <span class="mock-sub">Report in Hindi</span>
+        </div>
+    </div>
+</section>
+
+<!-- ── STATS ── -->
+<section class="stats-section" id="stats">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card" data-count="94.2" data-suffix="%">
+                <div class="stat-number"><span class="count-val">0</span>%</div>
+                <div class="stat-label">Model Accuracy</div>
+                <div class="stat-sub">On NIH ChestX-ray14 validation set</div>
+            </div>
+            <div class="stat-card" data-count="8" data-suffix="">
+                <div class="stat-number"><span class="count-val">0</span></div>
+                <div class="stat-label">Languages Supported</div>
+                <div class="stat-sub">EN · HI · KN · MR · TA · TE · BN · OR</div>
+            </div>
+            <div class="stat-card" data-count="3" data-suffix="">
+                <div class="stat-number"><span class="count-val">0</span></div>
+                <div class="stat-label">AI Models in Ensemble</div>
+                <div class="stat-sub">Triple DenseNet-121 for robustness</div>
+            </div>
+            <div class="stat-card" data-count="10" data-suffix="">
+                <div class="stat-number"><span class="count-val">0</span>s</div>
+                <div class="stat-label">Avg. Analysis Time</div>
+                <div class="stat-sub">CPU inference with MC Dropout</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="features-section" id="features">
+    <div class="container">
+        <div class="section-label">Capabilities</div>
+        <h2 class="section-title">Everything Your Clinic Needs</h2>
+        <p class="section-sub">A complete AI diagnostic system designed for resource-constrained environments</p>
+
+        <div class="features-grid">
+            <div class="feature-card feature-large">
+                <div class="feature-icon-wrap teal">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg>
+                </div>
+                <h3>Triple Ensemble AI</h3>
+                <p>Three DenseNet-121 models vote on every diagnosis, delivering hospital-grade accuracy even on a basic laptop CPU — no GPU required.</p>
+                <div class="feature-tag">Core Detection</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap purple">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3>Offline Mode</h3>
+                <p>Full analysis without an internet connection. Perfect for rural clinics with unreliable connectivity.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap orange">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <h3>Grad-CAM Explainability</h3>
+                <p>Heatmap overlays show exactly which lung regions influenced the diagnosis. Trust AI you can see.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap blue">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h3>8-Language Reports</h3>
+                <p>Diagnostic reports in English, Hindi, Kannada, Marathi, Tamil, Telugu, Bengali and Odia.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap green">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <h3>Clinical Triage</h3>
+                <p>SpO2, fever duration, and haemoptysis feed into an intelligent risk scoring engine that sets referral urgency.</p>
+            </div>
+            <div class="feature-card feature-large">
+                <div class="feature-icon-wrap pink">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <h3>Patient Management</h3>
+                <p>Every patient gets a unique Patient ID. All scans and clinical data are securely stored in the cloud, accessible from any device, forever.</p>
+                <div class="feature-tag">Cloud Sync</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section" id="how-it-works">
+    <div class="container">
+        <div class="section-label">Process</div>
+        <h2 class="section-title">From X-Ray to Report in 4 Steps</h2>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <div class="step-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+                </div>
+                <h3>Create Account</h3>
+                <p>Sign up in seconds. A unique Patient ID is automatically generated and your profile is securely stored.</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <div class="step-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                </div>
+                <h3>Upload X-Ray</h3>
+                <p>Drag & drop any chest X-ray image. Our quality assessment pipeline validates and enhances the image automatically.</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <div class="step-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <h3>AI Analysis</h3>
+                <p>Three DenseNet-121 models analyze in parallel with MC Dropout uncertainty estimation. Results in ~10 seconds.</p>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-card">
+                <div class="step-number">04</div>
+                <div class="step-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <h3>Clinical Report</h3>
+                <p>Receive a detailed diagnostic report with triage recommendation, heatmap visualization, and multilingual output.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+    <div class="cta-glow"></div>
+    <div class="container">
+        <div class="cta-content">
+            <h2 class="cta-title">Ready to Transform Diagnostics?</h2>
+            <p class="cta-sub">Join healthcare workers using RuralX AI to save lives in underserved communities.</p>
+            <a href="/auth?mode=signup" class="btn-primary-hero large" id="ctaGetStarted">
+                Create Your Free Account
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="nav-logo" style="justify-content: flex-start;">
+                    <div class="logo-icon-nav">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#fff" stroke-width="2"/>
+                            <path d="M12 8V16M8 12H16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <span class="nav-brand">RuralX <span class="brand-ai">AI</span></span>
+                </div>
+                <p>AI-powered diagnostics for rural healthcare.</p>
+            </div>
+            <div class="footer-copy">© 2026 RuralX AI · For research & clinical support use only</div>
+        </div>
+    </div>
+</footer>
+
+<script src="/static/landing.js"></script>
+</body>
+</html>
